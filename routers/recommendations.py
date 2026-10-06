@@ -5,6 +5,7 @@ from datetime import datetime
 from database import get_db
 from models import User, Policy, Recommendation
 from oauth2 import get_current_user
+from audit_helper import write_audit_event
 
 router = APIRouter()
 
@@ -107,9 +108,21 @@ def get_recommendations(
             "reason": reason_text
         })
 
-    db.commit()
-
+    # Sort recommendations before writing audit event
     recommendations.sort(key=lambda x: x["score"], reverse=True)
+
+    # Write audit event before commit
+    write_audit_event(
+        db, "RECOMMENDATIONS_GENERATED", "Recommendations",
+        actor_email=current_user.email, severity="INFO",
+        entity_type="User", entity_id=str(user_id),
+        metadata={
+            "user_id": user_id,
+            "risk_level": risk_level,
+            "count_returned": len(recommendations[:5])
+        }
+    )
+    db.commit()
 
     return {
         "risk_level": risk_level,

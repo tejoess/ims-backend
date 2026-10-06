@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Optional, List
 
 
 # -----------------------------
@@ -89,3 +90,39 @@ class AdminLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# -----------------------------
+# AUDIT LOG
+# -----------------------------
+class AuditLogCreate(BaseModel):
+    event_name:  str
+    category:    str
+    actor_email: str
+    entity_type: Optional[str] = None
+    entity_id:   Optional[str] = None
+    severity:    str
+    metadata:    Optional[dict] = None
+
+
+class AuditLogResponse(BaseModel):
+    id:          int
+    event_name:  str
+    category:    str
+    actor_email: str
+    entity_type: Optional[str]  = None
+    entity_id:   Optional[str]  = None
+    severity:    str
+    metadata:    Optional[dict] = None
+    created_at:  datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AuditLogListResponse(BaseModel):
+    items:       List[AuditLogResponse]
+    total_count: int
+    page:        int
+    page_size:   int
+    total_pages: int

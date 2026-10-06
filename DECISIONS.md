@@ -23,6 +23,34 @@ Notes: anything a future ticket touching this area should know —
 
 <!-- Entries below this line, most recent first -->
 
+## EPT-27 — Backend: Platform Audit Trail
+Date: 2026-10-07
+Risk tier: HIGH
+Decision: Approved plan to implement the complete backend audit logging infrastructure.
+  New `audit_logs` table (additive DDL, no existing tables touched). A synchronous
+  `write_audit_event()` helper that never commits — callers own the transaction.
+  All 18 events in the Audit Event Catalogue instrumented across 7 existing files.
+  Four new trigger endpoints added (POST /logout, PUT /users/{id}/password,
+  POST /claims/{id}/withdraw, PUT /userpolicies/{id}/auto-renew). Two new admin
+  endpoints: GET /admin/audit-log (paginated, filterable) and GET /admin/audit-log/export
+  (CSV, capped at 1 000 rows, writes ADMIN_AUDIT_LOG_EXPORTED before streaming).
+  `PUT /claims/{id}/status` gains admin_only() guard as a bundled security fix.
+  Commit pattern in `claims.py` restructured: db.flush() used to get claim ID before
+  the first commit so CLAIM_SUBMITTED is atomic with claim creation.
+  Down migration drops audit_logs entirely — data loss, not reversible.
+Against acceptance criteria: AC-01 (table + indexes), AC-02 (all 18 catalogue events),
+  AC-03/10 (USER_LOGIN_FAILURE without session), AC-04 (transactional writes),
+  AC-05 (paginated list + all filters), AC-06 (CSV export + EXPORTED event),
+  AC-07 (admin_only 403), AC-08 (no modification endpoints), AC-09 (EXPORTED before stream).
+  33 TC-nnn test cases defined in test-plan.md.
+Notes: entity_id stored as VARCHAR(100) rather than INT to avoid a future schema change
+  if UUID-typed entities are introduced. POLICY_DUPLICATE_ATTEMPT and USER_LOGIN_FAILURE
+  are the two events that commit independently before raising an exception — both are
+  failure-path events with no successful triggering transaction. The admin_only() guard
+  on PUT /claims/{id}/status is not optional: without it CLAIM_STATUS_ADMIN_CHANGED
+  attribution is meaningless. EPT-28 (Frontend) cannot start until this ticket is
+  deployed. Evidence bundle: .agentic/tickets/EPT-27/evidence.md (generated post-implementation).
+
 ## EPT-25 — Policy Search & Filtering (approved, PR opened)
 Date: 2026-09-22
 Risk tier: MEDIUM

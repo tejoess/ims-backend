@@ -1,0 +1,33 @@
+{
+  "ticket": "EPT-27",
+  "risk": "HIGH",
+  "branch": "feature/EPT-27",
+  "checkpoint_sha": "e5eabeb",
+  "phase": "IMPLEMENTATION",
+  "plan_approved": true,
+  "red_captured": true,
+  "attempt": 0,
+  "max_attempts": 3,
+  "verification": "not_run",
+  "review": "pending",
+  "_phases": [
+    "ANALYSIS",
+    "WAITING_FOR_APPROVAL",
+    "IMPLEMENTATION",
+    "VERIFICATION",
+    "FIX",
+    "EVIDENCE",
+    "REVIEW",
+    "APPROVED",
+    "PR",
+    "BLOCKED",
+    "ABANDONED"
+  ],
+  "_metrics": {
+    "planned_at": "2026-10-07T00:00:00Z",
+    "approved_at": "2026-10-07T00:00:00Z",
+    "green_at": null,
+    "files_changed": null,
+    "diff_lines": null
+  }
+}

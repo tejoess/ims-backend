@@ -91,6 +91,24 @@ CREATE TABLE adminlogs (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE audit_logs (
+    id          SERIAL PRIMARY KEY,
+    event_name  VARCHAR(100) NOT NULL,
+    category    VARCHAR(50)  NOT NULL,
+    actor_email VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(50),
+    entity_id   VARCHAR(100),
+    severity    VARCHAR(20)  NOT NULL,
+    metadata    JSONB,
+    created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_audit_logs_created_at  ON audit_logs (created_at DESC);
+CREATE INDEX idx_audit_logs_category    ON audit_logs (category);
+CREATE INDEX idx_audit_logs_severity    ON audit_logs (severity);
+CREATE INDEX idx_audit_logs_actor_email ON audit_logs (actor_email);
+CREATE INDEX idx_audit_logs_entity      ON audit_logs (entity_type, entity_id);
+
 -- Seed data so the Policies / Compare pages show something immediately.
 INSERT INTO providers (name, country) VALUES
     ('SecureLife Insurance', 'India'),

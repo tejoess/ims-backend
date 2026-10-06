@@ -6,6 +6,7 @@ from database import get_db
 from models import User
 from schemas import SignupRequest
 from hashing import Hash
+from audit_helper import write_audit_event
 
 # ✅ Import routers
 from routers import (
@@ -64,6 +65,15 @@ def signup(request: SignupRequest, db: Session = Depends(get_db)):
     )
 
     db.add(new_user)
+    db.flush()  # Get new_user.id without committing
+
+    # Write USER_REGISTERED audit event
+    write_audit_event(
+        db, "USER_REGISTERED", "User Profile",
+        actor_email=new_user.email, severity="INFO",
+        entity_type="User", entity_id=str(new_user.id),
+        metadata={"user_id": new_user.id, "email": new_user.email}
+    )
     db.commit()
     db.refresh(new_user)
 

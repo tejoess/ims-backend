@@ -1,0 +1,40 @@
+ticket: EPT-27
+risk: HIGH
+phase: WAITING_FOR_APPROVAL
+
+allowed_paths:
+  # Schema
+  - database/init.sql
+
+  # Core layer
+  - models.py
+  - schemas.py
+
+  # New helper
+  - audit_helper.py
+
+  # Entry point
+  - main.py
+
+  # Routers — instrumentation + new endpoints
+  - routers/login.py
+  - routers/risk_profile.py
+  - routers/claims.py
+  - routers/userpolicies.py
+  - routers/recommendations.py
+  - routers/admin.py
+
+  # Tests
+  - tests/conftest.py
+  - tests/test_audit.py
+
+frozen_tests:
+  - tests/conftest.py
+  - tests/test_audit.py
+
+notes: |
+  - `run_fraud_checks` in routers/claims.py must be refactored to return (fraud_flags, auto_changed)
+    rather than silently mutating only. This is required for transactional audit writes.
+  - `PUT /claims/{id}/status` gains admin_only() guard as part of this ticket.
+  - `db.flush()` pattern required for pre-commit ID retrieval in claims and signup.
+  - `write_audit_event()` must never call db.commit(); callers own the transaction.

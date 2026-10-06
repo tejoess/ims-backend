@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 from typing import List
+from pydantic import BaseModel
 import random
 
 import models
 import schemas
 from database import get_db
 from oauth2 import get_current_user
+from audit_helper import write_audit_event
 
 router = APIRouter(
     prefix="/userpolicies",
@@ -35,6 +37,17 @@ def activate_policy(
     ).first()
 
     if existing:
+        # Write audit event and commit BEFORE raising exception
+        write_audit_event(
+            db, "POLICY_DUPLICATE_ATTEMPT", "Policies",
+            actor_email=current_user.email, severity="WARNING",
+            entity_type="UserPolicy",
+            metadata={
+                "policy_id": policy_id,
+                "existing_user_policy_id": existing.id
+            }
+        )
+        db.commit()
         raise HTTPException(status_code=400, detail="Policy already activated")
 
     policy_number = f"POL-{random.randint(10000,99999)}"
@@ -51,6 +64,20 @@ def activate_policy(
     )
 
     db.add(new_user_policy)
+    db.flush()  # Get new_user_policy.id without committing
+
+    # Write POLICY_ACTIVATED audit event
+    write_audit_event(
+        db, "POLICY_ACTIVATED", "Policies",
+        actor_email=current_user.email, severity="INFO",
+        entity_type="UserPolicy", entity_id=str(new_user_policy.id),
+        metadata={
+            "user_policy_id": new_user_policy.id,
+            "policy_id": policy_id,
+            "policy_number": new_user_policy.policy_number,
+            "premium": str(new_user_policy.premium)
+        }
+    )
     db.commit()
     db.refresh(new_user_policy)
 
@@ -88,3 +115,43 @@ def get_user_policies(
         )
         for user_policy, policy in rows
     ]
+
+
+# ===========================
+# AUTO-RENEW TOGGLE
+# ===========================
+class AutoRenewRequest(BaseModel):
+    auto_renew: bool
+
+
+@router.put("/{user_policy_id}/auto-renew")
+def toggle_auto_renew(
+    user_policy_id: int,
+    request: AutoRenewRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    up = db.query(models.UserPolicies).filter(
+        models.UserPolicies.id == user_policy_id,
+        models.UserPolicies.user_id == current_user.id
+    ).first()
+
+    if not up:
+        raise HTTPException(status_code=404, detail="User policy not found")
+
+    old_value = up.auto_renew
+    up.auto_renew = request.auto_renew
+
+    write_audit_event(
+        db, "POLICY_AUTO_RENEW_TOGGLED", "Policies",
+        actor_email=current_user.email, severity="INFO",
+        entity_type="UserPolicy", entity_id=str(user_policy_id),
+        metadata={
+            "user_policy_id": user_policy_id,
+            "old_value": old_value,
+            "new_value": request.auto_renew
+        }
+    )
+    db.commit()
+
+    return {"message": "Auto-renew updated", "auto_renew": request.auto_renew}

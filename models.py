@@ -109,3 +109,17 @@ class AdminLogs(Base):
     target_type = Column(String)
     target_id = Column(Integer)
     timestamp = Column(TIMESTAMP, server_default=func.now())
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    event_name  = Column(String(100), nullable=False)
+    category    = Column(String(50),  nullable=False)
+    actor_email = Column(String(255), nullable=False)
+    entity_type = Column(String(50),  nullable=True)
+    entity_id   = Column(String(100), nullable=True)
+    severity    = Column(String(20),  nullable=False)
+    metadata    = Column(JSONB,       nullable=True)
+    created_at  = Column(TIMESTAMP,   server_default=func.now())
