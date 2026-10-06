@@ -1,0 +1,55 @@
+# Template for .claude/current-scope.yaml — the planner agent generates a real
+# one of these (named exactly current-scope.yaml) once a plan is approved. It is
+# the machine-readable scope contract: what this ticket is allowed to touch,
+# what it may not do, and what completion actually means for it.
+#
+# Read by: guard-scope-edit.sh (allowed_paths), guard-scope-ops.sh
+# (forbidden_operations), guard-frozen-tests.sh (frozen_tests),
+# collect-evidence.sh (acceptance_criteria, risk).
+#
+# Archive it to .agentic/tickets/<KEY>/ once the PR opens — an absent file means
+# "no ticket currently in flight," which is intentional (edits fall back to the
+# global denylist only).
+
+ticket: KAN-000
+risk: LOW              # LOW | MEDIUM | HIGH | CRITICAL — see risk-classification skill
+branch: feature/KAN-000
+
+acceptance_criteria:
+  - id: AC-001
+    text: "One-line acceptance criterion from the ticket, in plain language"
+  - id: AC-002
+    text: "A second, if there is one"
+
+allowed_paths:
+  - src/features/example/**
+  - tests/features/example/**
+
+forbidden_operations:
+  - dependency_install
+  - migration
+  - deploy
+
+# Written by the RED step (red-first skill), NOT by the planner. Empty until the
+# implementer has written the test plan as real failing tests. Once populated,
+# guard-frozen-tests.sh blocks all edits to these files — changing a test to make
+# the suite pass is an escalation, never a fix.
+frozen_tests: []
+
+verification:
+  build: required
+  lint: required
+  type_check: required
+  unit_tests: required
+  integration_tests: required
+  api_tests: optional
+  ui_tests: optional          # set required if the ticket touches user-facing UI
+  migration_up: optional      # required if the ticket includes a migration
+  migration_down: optional    # required whenever migration_up is — an
+                              # irreversible migration is a release risk the
+                              # review gate should see, not discover later
+
+completion:
+  all_required_tests_pass: true
+  scope_check_passes: true
+  every_ac_has_a_passing_tc: true   # enforced by the coverage table in evidence.md

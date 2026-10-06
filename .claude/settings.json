@@ -1,0 +1,32 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/guard-sensitive-paths.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/guard-bash-writes.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/guard-frozen-tests.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/guard-scope-edit.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

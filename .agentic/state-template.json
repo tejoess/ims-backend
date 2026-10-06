@@ -1,0 +1,33 @@
+{
+  "ticket": "KAN-000",
+  "risk": "LOW",
+  "branch": null,
+  "checkpoint_sha": null,
+  "phase": "ANALYSIS",
+  "plan_approved": false,
+  "red_captured": false,
+  "attempt": 0,
+  "max_attempts": 3,
+  "verification": "not_run",
+  "review": "pending",
+  "_phases": [
+    "ANALYSIS",
+    "WAITING_FOR_APPROVAL",
+    "IMPLEMENTATION",
+    "VERIFICATION",
+    "FIX",
+    "EVIDENCE",
+    "REVIEW",
+    "APPROVED",
+    "PR",
+    "BLOCKED",
+    "ABANDONED"
+  ],
+  "_metrics": {
+    "planned_at": null,
+    "approved_at": null,
+    "green_at": null,
+    "files_changed": null,
+    "diff_lines": null
+  }
+}

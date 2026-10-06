@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16
+    container_name: ims_backend_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: covermate
+      POSTGRES_PASSWORD: covermate
+      POSTGRES_DB: insurance_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - ipm_pgdata:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  ipm_pgdata:

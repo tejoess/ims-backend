@@ -1,0 +1,19 @@
+# One regex pattern per line. A Bash tool-call is blocked if the command
+# matches ANY line here. Lines starting with # (and blank lines) are
+# ignored. This is the GLOBAL denylist — active on every ticket regardless
+# of declared scope. The per-ticket allowlist lives in current-scope.yaml
+# instead (generated per ticket, see current-scope-template.yaml).
+
+# Generic defaults:
+\.env
+secrets
+iam
+deploy/
+
+# Project-specific — uncomment or add your own once you know what
+# "sensitive" means for this repo, e.g.:
+# agentcore_deploy\.py
+# terraform/
+
+# Frozen-test lock — written once at RED, never edited afterwards.
+frozen\.lock
