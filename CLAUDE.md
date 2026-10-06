@@ -44,6 +44,7 @@ agent use lives here and should not pay the pipeline's overhead:
 | `/ticket <KEY>` | Brief pointwise summary of a Jira ticket |
 | `/diff [base]` | Quick summary of current git diff vs base branch |
 | `/scope` | Show current ticket in flight, phase, allowed paths |
+| `/results <KEY>` | Publish test evidence as a visual color-coded artifact |
 
 The pipeline proper. Each refuses to run if `state.json` is not in its
 required phase — that refusal is what makes the gates real rather than
